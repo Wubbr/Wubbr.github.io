@@ -1,0 +1,219 @@
+<!doctype HTML>
+<html lang=en>
+<meta charset=UTF-8>
+<meta content="width=device-width,initial-scale=1" name=viewport>
+<title>Bubba Shrimp Multichoice</title>
+<style>
+    body{margin:0;font-family:sans-serif;height:100vh;display:flex;justify-content:center;align-items:center;background:#f2f2f2}.container{display:flex;background:#fff;border:1px solid #ccc;border-radius:10px;padding:20px;box-shadow:0 4px 12px rgba(0,0,0,.1);width:90%;max-width:95%;height:80vh;gap:40px}.left{flex:.25;display:flex;flex-direction:column;justify-content:space-between}.right{flex:1;display:flex;flex-direction:column;height:100%;padding-left:5px}.middle{flex:1;max-height:100%;overflow-y:auto;padding:0 15px;border-left:1px solid #ddd;border-right:1px solid #ddd;display:flex;flex-direction:column}.choice{margin-bottom:20px}.choice div{display:flex;align-items:center;gap:10px;margin:4px 0;width:100%}.choice input[type=text]{flex:1;max-width:360px;padding:6px;font-size:14px;box-sizing:border-box}.choice input[type=radio]{margin:0 4px;flex-shrink:0}label{display:flex;align-items:center;gap:10px}.small-line{width:50%;height:1px;background-color:#ccc;margin:10px 0}.delete-btn{font-size:12px;padding:2px 6px;margin-left:auto;height:25px;min-width:20px;align-self:flex-start}button{padding:6px 10px;font-size:14px;cursor:pointer;align-self:flex-start}.right textarea{width:90%;height:40%;resize:none;padding:10px;font-family:monospace}.choice-text{width:90%;height:40%;resize:none;padding:10px;font-family:monospace;margin-bottom:15px}.return-label{white-space:pre;overflow-x:auto;overflow-y:auto;resize:none;wrap:off}.right .final-output{white-space:pre;overflow-x:auto;overflow-y:auto;resize:none;wrap:off}.right .choice-text{white-space:pre;overflow-x:auto;overflow-y:auto;resize:none;wrap:off}
+</style>
+<div class=container>
+    <div class=left>
+        <div>
+            <div class=setting>
+                <label><strong>Indent Option:</strong></label>
+                <br>
+                <div class=radio-group>
+                    <label>
+                        <input id=space name=indent type=radio value=space checked> Space</label>
+                    <br>
+                    <label>
+                        <input id=tab name=indent type=radio value=tab> Tab</label>
+                    <br>
+                </div>
+            </div>
+        </div>
+        <div class=label-group>
+            <label><strong>return label name:</strong></label>
+            <br>
+            <textarea class=return-label placeholder=input...>returnLabel</textarea>
+        </div>
+    </div>
+    <div class=middle id=middlePane></div>
+    <div class=right>
+        <textarea class=choice-text placeholder="Text and stuff after the choice here&#10;&#10;Click on choice to see contents"></textarea>
+        <textarea class=final-output placeholder=""></textarea>
+    </div>
+</div>
+<script>
+    let menuData = [{
+         name: "exampleMenu",
+         choices: [{
+             text: "This is an example choice",
+             condition: '',
+             result: "this is inner text of the choice"
+         }]
+     }],
+     currentSelection = {
+         menuIndex: 0,
+         choiceIndex: 0
+     },
+     returnLabel = "";
+
+ function uncheckAllChoiceRadios() {
+     document.querySelectorAll(".middle input[type='radio']").forEach((e => {
+         e.checked = !1
+     }))
+ }
+
+ function generate() {
+     const e = document.getElementsByName("indent");
+     let t = null;
+     e.forEach((e => {
+         e.checked && (t = e.value)
+     }));
+     let n = "";
+     if ("space" === t) n = " ";
+     else {
+         if ("tab" !== t) return alert("Please select an indent option.");
+         n = "\t"
+     }
+     const c = document.getElementById("middlePane");
+     c.innerHTML = "";
+     const a = document.createElement("form");
+     a.setAttribute("action", "#"), menuData.forEach(((e, t) => {
+         const n = document.createElement("div");
+         n.style.display = "flex", n.style.justifyContent = "space-between", n.style.alignItems = "center", n.style.marginBottom = "6px";
+         const c = document.createElement("p");
+         c.style.display = "flex", c.style.alignItems = "center", c.style.gap = "6px", c.style.margin = 0;
+         const l = document.createElement("span");
+         l.textContent = "Select a ";
+         const i = document.createElement("input");
+         i.type = "text", i.value = e.name || `menuName_${t}`, i.className = "menu-name-textbox", i.oninput = e => {
+             menuData[t].name = e.target.value.replace(/\s+/g, ""), o()
+         };
+         const u = document.createElement("span");
+         u.textContent = ":", c.appendChild(l), c.appendChild(i), c.appendChild(u);
+         const r = document.createElement("button");
+         r.textContent = "✕", r.style.fontSize = "12px", r.style.padding = "2px 20px", r.type = "button", r.onclick = () => {
+             menuData.length > 1 ? (menuData.splice(t, 1), generate()) : alert("There must be at least one menu.")
+         }, n.appendChild(c), n.appendChild(r), a.appendChild(n);
+         const s = document.createElement("div");
+         s.className = "choice", e.choices.forEach(((e, n) => {
+             const c = `menu_${t}_choice_${n}_${crypto.randomUUID().slice(0,6)}`,
+                 a = document.createElement("div");
+             a.style.display = "flex", a.style.alignItems = "center", a.style.justifyContent = "space-between", a.style.gap = "8px", a.style.marginBottom = "4px";
+             const l = document.createElement("div");
+             l.style.display = "flex", l.style.alignItems = "center", l.style.gap = "4px";
+             const i = document.createElement("input");
+             i.type = "text", i.placeholder = "conditional, e.g. *if", i.value = e.condition || "", i.style.width = "80px", i.style.flexShrink = "0", i.onclick = () => {
+                 uncheckAllChoiceRadios(), currentSelection = {
+                     menuIndex: t,
+                     choiceIndex: n
+                 }, document.querySelector(".right .choice-text").value = menuData[t].choices[n].result || ""
+             }, i.oninput = e => {
+                 menuData[t].choices[n].condition = e.target.value, o()
+             };
+             const u = document.createElement("input");
+             u.type = "radio", u.name = "global_choice", u.value = n, u.id = c, 0 === n && 0 === t && (u.checked = !0), u.onclick = () => {
+                 uncheckAllChoiceRadios(), u.checked = !0, currentSelection = {
+                     menuIndex: t,
+                     choiceIndex: n
+                 }, document.querySelector(".right .choice-text").value = menuData[t].choices[n].result || ""
+             };
+             const r = document.createElement("input");
+             r.type = "text", r.placeholder = "Put choice text here", r.value = e.text || "", r.style.width = "140px", r.style.flexShrink = "0", r.onclick = () => {
+                 uncheckAllChoiceRadios(), u.checked = !0, currentSelection = {
+                     menuIndex: t,
+                     choiceIndex: n
+                 }, document.querySelector(".right .choice-text").value = menuData[t].choices[n].result || ""
+             }, r.oninput = e => {
+                 menuData[t].choices[n].text = e.target.value, o()
+             };
+             const d = document.createElement("label");
+             d.setAttribute("for", c), d.appendChild(u), l.appendChild(d), l.appendChild(i), l.appendChild(r);
+             const m = document.createElement("button");
+             m.textContent = "✕", m.className = "delete-btn", m.type = "button", m.onclick = () => {
+                 menuData[t].choices.length > 1 ? menuData[t].choices.splice(n, 1) : alert("A menu must have at least one choice."), generate()
+             }, a.appendChild(l), a.appendChild(m), s.appendChild(a)
+         }));
+         const d = document.createElement("button");
+         d.textContent = "+ Choice", d.style.fontSize = "12px", d.style.padding = "4px 8px", d.type = "button", d.onclick = function() {
+             menuData[t].choices.push({
+                 text: "",
+                 condition: "",
+                 result: ""
+             }), generate()
+         };
+         const m = document.createElement("div");
+         m.style.borderBottom = "1px solid #ccc", m.style.margin = "10px 0", s.appendChild(d), s.appendChild(m), a.appendChild(s)
+     }));
+     const l = document.createElement("button");
+
+function o() {
+    let e = "*fake_choice ";
+    const t = menuData.map((e, t) => e.name || `menuName_${t}`);
+    e += t.join(" ") + "\n";
+    const c = (returnLabel || "").replace(/\s+/g, "") || "multichoice_return";
+
+    function build(a, l, o, results) {
+        if (a >= menuData.length) {
+            // Output all accumulated results
+            e += results.map(line => n.repeat(o) + line).join("\n") + "\n";
+            e += n.repeat(o) + `*goto ${c}\n`;
+            return;
+        }
+
+        menuData[a].choices.forEach((i, u) => {
+            const hasCondition = !!i.condition?.trim();
+            const r = i.condition?.trim() || "";
+            const s = i.text || `menu_${a}_Choice_${u}`;
+
+            if (hasCondition) {
+                // Put the condition line first
+                e += n.repeat(o) + `${r}\n`;
+                e += n.repeat(o + 1) + `#${s}\n`; // Indented one level deeper
+            } else {
+                e += n.repeat(o) + `#${s}\n`;
+            }
+
+            // Prepare the new results array for the next level
+            const resultText = (i.result?.trim()
+                ? i.result
+                : `*comment WARNING ${menuData[a].name || `menuName_${a}`} choice ${u + 1} is BLANK. Remember to add something to it!`
+            ).split("\n");
+
+            // If the choice had a condition, its content is already one level deeper, so bump indentation
+            const resultIndentLevel = hasCondition ? o + 2 : o + 1;
+
+            build(a + 1, [...l, u], resultIndentLevel, [...results, ...resultText]);
+        });
+    }
+
+    build(0, [], 1, []);
+    document.querySelector(".right .final-output").value = e + `*label ${c}`;
+}
+
+
+     l.textContent = "+ Menu", l.style.fontSize = "12px", l.style.padding = "4px 8px", l.type = "button", l.onclick = function() {
+         const e = menuData.length;
+         menuData.push({
+             name: `menuName_${e}`,
+             choices: [{
+                 text: "",
+                 condition: "",
+                 result: ""
+             }]
+         }), generate()
+     }, a.appendChild(l), c.appendChild(a), o()
+ }
+ document.querySelector(".right .choice-text").addEventListener("input", (e => {
+     const {
+         menuIndex: t,
+         choiceIndex: n
+     } = currentSelection;
+     menuData[t].choices[n].result = e.target.value, generate()
+ })), document.querySelector(".right .choice-text").addEventListener("keydown", (e => {
+     if ("Tab" === e.key) {
+         e.preventDefault();
+         const t = e.target,
+             n = t.selectionStart,
+             c = t.selectionEnd;
+         t.value = t.value.substring(0, n) + "\t" + t.value.substring(c), t.selectionStart = t.selectionEnd = n + 1
+     }
+ })), document.querySelector(".left .return-label").addEventListener("input", (e => {
+     returnLabel = e.target.value.replace(/\s+/g, ""), generate()
+ }));
+ const returnLabelTextarea = document.querySelector(".left .return-label");
+ returnLabel = returnLabelTextarea.value.replace(/\s+/g, "") || "returnLabel", returnLabelTextarea.value = returnLabel, document.querySelectorAll("input[name='indent']").forEach((e => {
+     e.addEventListener("change", generate)
+ })), generate();</script>
